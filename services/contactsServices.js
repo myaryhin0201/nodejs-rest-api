@@ -1,7 +1,6 @@
 const Contacts = require('../model/schemaContact')
 
 const listContacts = (owner, { skip, limit, favorite }) => {
-  console.log(favorite)
   if (favorite === undefined) {
     return Contacts.find({ owner }).select({ __v: 0 }).skip(skip).limit(limit)
   }

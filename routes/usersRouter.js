@@ -3,7 +3,10 @@ const router = express.Router()
 const usersController = require('../controllers/usersController')
 const upload = require('../helpers/multer')
 
-const { regLogValidation } = require('../middlewares/userValidation')
+const {
+  regLogValidation,
+  reVerifyValidation
+} = require('../middlewares/userValidation')
 const { authMiddleware } = require('../middlewares/authMiddleware')
 
 router.post('/signup', regLogValidation, usersController.signUp)
@@ -22,5 +25,8 @@ router.patch(
   upload.single('avatar'),
   usersController.avatars
 )
+
+router.get('/verify/:token', usersController.verify)
+router.post('/verify/', reVerifyValidation, usersController.reVerify)
 
 module.exports = router
