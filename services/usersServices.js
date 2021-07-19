@@ -1,8 +1,10 @@
 /* eslint-disable promise/param-names */
 const Users = require('../model/schemaUser')
+const { sendEmail } = require('./emailServices')
 const cloudinary = require('cloudinary').v2
 const fs = require('fs/promises')
 require('dotenv').config()
+const { nanoid } = require('nanoid')
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -20,7 +22,10 @@ const getUserByEmail = async (email) => {
 }
 
 const addUser = async (body) => {
-  const user = await Users(body)
+  const verifyToken = nanoid()
+  const { email } = body
+  await sendEmail(verifyToken, email)
+  const user = await Users({ ...body, verifyToken })
   return user.save()
 }
 
@@ -69,11 +74,31 @@ const updateAvatar = async (id, pathFile) => {
   }
 }
 
+const verify = async ({ token }) => {
+  const user = await Users.findOne({ verifyToken: token })
+  if (user) {
+    await user.updateOne({ verify: true, verifyToken: null })
+    return true
+  }
+  return false
+}
+
+const reVerify = async (email) => {
+  const user = await Users.findOne({ email, verify: false })
+
+  if (user) {
+    await sendEmail(user.verifyToken, email)
+    return true
+  }
+}
+
 module.exports = {
   getUserById,
   getUserByEmail,
   addUser,
   updateToken,
   userUpdateSubscription,
-  updateAvatar
+  updateAvatar,
+  verify,
+  reVerify
 }
